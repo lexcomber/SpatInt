@@ -1,4 +1,4 @@
-# Spatial interpolation: a review of methods and future opportunities
+# Spatial interpolation: a review of methods and opportunities using new forms of data with coded illustrations
 Coded examples of the different Spatial Interpolation approaches in R described in the paper
 
 Alexis Comber<sup>1</sup>, Wen Zeng<sup>1</sup>,<sup>2</sup>
@@ -11,4 +11,4 @@ Alexis Comber<sup>1</sup>, Wen Zeng<sup>1</sup>,<sup>2</sup>
 TBC
 
 ## Code 
-The code and data used to illustrate a forthcoming submission. You can download the `.R` file (`.Rmd` file to come) and run this in R or RStudio. You may need to install some of the packages but the code checks and does this. The script  will load up the data and develop each of develop described in the text. Please contact me if you have queries! Lex (a.comber@leeds.ac.uk)
+The code and data used to illustrate a forthcoming submission to Geography Compass. You can download the `.R` file (`.Rmd` file to come) and run this in R or RStudio. You may need to install some of the packages but the code checks and does this. The script  will load up the data and develop each of develop described in the text. Please contact me if you have queries! Lex (a.comber@leeds.ac.uk)
