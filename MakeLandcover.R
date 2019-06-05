@@ -38,10 +38,13 @@ library(rgdal)
 library(OpenStreetMap)
 library(repmis)
 
+#### load target zones, source zones and projection 
+source_data("https://github.com/lexcomber/SpatInt/blob/master/DataIn.RData?raw=True")
 #### Prepapre land cover data 
 # USGS NLCD downlaoded from https://www.usgs.gov/core-science-systems/ngp/tnm-delivery/
 # classes desceibed here https://www.mrlc.gov/sites/default/files/metadata/landcover.html
 # load data
+setwd("/Users/geoaco/Desktop/my_docs_mac/leeds_work/research/wen/reviewanal")
 lc.orig <- readGDAL("nlcd/NLCD2011_LC_Connecticut.tif")
 # convert to points
 lc <- as(lc.orig, "SpatialPointsDataFrame")
@@ -63,6 +66,8 @@ summary(ol)
 lc_sz$SID <- ol$SID
 head(lc_sz@data)
 lc_sz$count <- 1
+# overlay points to TZ
+lc_tz <- lc[as(tz_sf, "Spatial"), ]
 
 # save 
-save("lc_sz", file = "landcover.RData")
+save(list = c("lc_sz", "lc_tz"), file = "landcover.RData")
