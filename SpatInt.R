@@ -1,6 +1,6 @@
-##### Development Script 	##### 
+##### Code Development Script 	##### 
 ##### Lex Comber		##### 
-##### January 2018		##### 
+##### January 2019		##### 
 
 #### -1. Check and load packages
 if (!is.element("pycno", installed.packages())) 
@@ -27,6 +27,12 @@ if (!is.element("repmis", installed.packages()))
     install.packages("repmis", dep = T)
 if (!is.element("gclus", installed.packages()))
     install.packages("gclus", dep = T)
+if (!is.element("raster", installed.packages()))
+    install.packages("raster", dep = T)
+if (!is.element("ggplot2", installed.packages()))
+    install.packages("ggplot2", dep = T)
+if (!is.element("GGally", installed.packages()))
+    install.packages("GGally", dep = T)
 # load packages into the R session
 library(pycno)
 library(tmap)
@@ -40,6 +46,9 @@ library(rgdal)
 library(OpenStreetMap)
 library(repmis)
 library(gclus)
+library(raster)
+library(ggplot2)
+library(GGally)
 
 #### 1. Load Data
 # load source zones and target zones
@@ -47,19 +56,13 @@ library(gclus)
 source_data("https://github.com/lexcomber/SpatInt/blob/master/DataIn.RData?raw=True")
 # or if saved locally
 # load("DataIn.RData")
-# make tmap plot item of Input data
-data.p <- tm_shape(sz_sf) + tm_polygons("HSE_UNITS", palette = "YlGnBu",
-              style = "kmeans", n = 9, title = "Houses Tracts") +
-  tm_layout(frame = F, legend.show = T) +
-  tm_shape(tz_sf) + tm_borders() +
-  tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)
 
 #### 2. No Ancillary Data ####
 
 #### 2.1 Areal Weighting
-# setwd("/Users/geoaco/Desktop/my_docs_mac/leeds_work/research/wen/reviewanal")
-# load(file = "part0.rda")
 aw_res <- st_interpolate_aw(sz_sf, tz_sf, extensive = T)
+fac <- sum(sz_sf$HSE_UNITS)/sum(aw_res$HSE_UNITS)
+aw_res$HSE_UNITS = aw_res$HSE_UNITS*fac
 
 #### 2.2 Pycno
 # pycno only takes sp format and SpatialGrid as TZs
@@ -128,19 +131,35 @@ for (i in 1:length(sid.list)){
 ## Make tmap plot items of results for Figure 1
 # Standardised plot breaks
 breaks = c(0, 50, 100, 200, 300, 500, 700, 1200, 1700, 2200)
+# make tmap plot item of Input data
+data.p <- tm_shape(tz_sf) + tm_borders()+ 
+	tm_shape(sz_sf) + 
+	tm_polygons("HSE_UNITS", palette = "YlGnBu",
+              style = "kmeans", n = 9, title = "Houses Tracts") +
+              tm_layout(frame = F, legend.show = T) +
+              tm_shape(tz_sf) + tm_borders() +
+              tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
+              tm_scale_bar(position = c(0.3))+
+              tm_compass(position = c(0.382, 0.1))
 atp.p <- tm_shape(a2p_res) + 
 	tm_polygons(col='houses',palette = "YlGnBu", 
             breaks = breaks, title = "Houses AtP")+
  			tm_layout(frame = F, legend.show = T) +
-			tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)
+			tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
+			tm_scale_bar(position = c(0.3))+
+			tm_compass(position = c(.382, 0.1))
 py.p <- tm_shape(py_res) + tm_polygons("dens", palette = "YlGnBu", 
             breaks = breaks, title = "Houses Pycno")+
               tm_layout(frame = F, legend.show = T) +
-              tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)
+              tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
+              tm_scale_bar(position = c(0.3))+
+              tm_compass(position = c(0.382, 0.1))
 aw.p <- tm_shape(aw_res) + tm_polygons("HSE_UNITS", palette = "YlGnBu", 
             breaks = breaks, title = "Houses AW")+
               tm_layout(frame = F, legend.show = T) +
-              tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)
+              tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
+              tm_scale_bar(position = c(0.3))+
+              tm_compass(position = c(0.382, 0.1))
 
 # write PNG of maps 
 # you may want to set your working directory with setwd()
@@ -151,6 +170,14 @@ print(aw.p, vp=viewport(layout.pos.col = 1, layout.pos.row = 2, height = 5))
 print(py.p, vp=viewport(layout.pos.col = 2, layout.pos.row = 1, height = 5))
 print(atp.p, vp=viewport(layout.pos.col = 2, layout.pos.row = 2, height = 5))
 dev.off()
+
+# summary table Table 2
+f1.df = data.frame(sz = append(summary(sz_sf$HSE_UNITS), sum(sz_sf$HSE_UNITS)),
+				a2p = append(summary(a2p_res$houses),sum(a2p_res$houses)),
+				pycno = append(summary(py_res$dens), sum(py_res$dens)),
+				aw = append(summary(aw_res$HSE_UNITS), sum(aw_res$HSE_UNITS)))
+rownames(f1.df)[7] = "Total"
+write.csv(round(f1.df,0),"tab2.csv")
 
 #### 3. With Ancillary Data ####
 
@@ -172,20 +199,24 @@ tz_m <- st_difference(tz_sf, mask_sf)
 #	tm_shape(dasy_res[211,])+tm_borders(lwd = 2)
 
 ## interpolation with the mask
-dasy <- st_interpolate_aw(sz_sf, tz_m, extensive = T)
 # and then put the results bask to the original TZs
-dasy$TID <- tz_m$TID
+dasy_res <- st_interpolate_aw(sz_sf, tz_m, extensive = T)
+# rescale by ratio of loss to total
+dasy_res$HSE_UNITS = dasy_res$HSE_UNITS * (sum(sz_sf$HSE_UNITS)/sum(dasy_res$HSE_UNITS))
+dasy_res$TID <- tz_m$TID
 index <- match(dasy_res$TID, tz_sf$TID)
-dasy_res <- tz_sf
-dasy_res$HSE_UNITS <- 0  
-dasy_res$HSE_UNITS[index] <- dasy$HSE_UNITS
-
+dasy <- tz_sf
+dasy$HSE_UNITS <- 0  
+dasy$HSE_UNITS[index] <- dasy_res$HSE_UNITS
+dasy_res <- dasy
 ## make tmap plot item of the results
 dasy.p<- 
 	tm_shape(dasy_res) + tm_polygons(col='HSE_UNITS',palette = "YlGnBu", 
             breaks = breaks, title = "Houses Dasy")+
  			tm_layout(frame = F, legend.show = T) +
-			tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)
+			tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
+            tm_scale_bar(position = c(0.3))+
+            tm_compass(position = c(0.382, 0.1))
 
 #### 3.2 Street weighted
 # load in the OSM street data
@@ -227,7 +258,10 @@ sw.p<- tm_shape(sw_res) + tm_polygons(col='Houses',palette = "YlGnBu",
             breaks = breaks, title = "Houses Street")+
  	tm_layout(frame = F, legend.show = T) +
  	#tm_shape(streets) +tm_lines("darkgray")+
-	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)
+	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
+	tm_scale_bar(position = c(0.3))+
+	tm_compass(position = c(0.382, 0.1))
+# save.image("upto3.3.RData")
 
 #### 3.3 Statistical
 # load in the USGS land cover  data
@@ -243,7 +277,7 @@ reg.mod <- as.formula(Houses~`Developed, High Intensity`+ `Developed, Medium Int
 mod <- lm(reg.mod, df)
 # summary(mod)
 # overlay points to TZ
-lc_tz <- lc[as(tz_sf, "Spatial"), ]
+#lc_tz <- lc[as(tz_sf, "Spatial"), ]
 ol <- SpatialPoints(coordinates(lc_tz),proj4string=.proj) %over% as(tz_sf,"Spatial")
 lc_tz$TID <- ol$TID
 lc_tz$count <- 1
@@ -263,7 +297,9 @@ stat_res$houses <- pred
 stat.p<- tm_shape(stat_res) + tm_polygons(col='houses',palette = "YlGnBu", 
             breaks = breaks, title = "Houses Stat")+
  	tm_layout(frame = F, legend.show = T) +
-	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)
+	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
+	tm_scale_bar(position = c(0.3))+
+	tm_compass(position = c(0.382, 0.1))
 
 #### 3.4 Point-Based ancillary information
 # load in the OSM building  data
@@ -314,7 +350,9 @@ pt.p <- tm_shape(pt_res) + tm_polygons(col='Houses',palette = "YlGnBu",
             breaks = breaks, title = "Houses Point")+
  	tm_layout(frame = F, legend.show = T) +
  	#tm_shape(buildings) +tm_dots("darkgray", alpha = 0.5, size = 0.002)+
-	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)
+	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
+	tm_scale_bar(position = c(0.3))+
+	tm_compass(position = c(0.382, 0.1))
 
 #### 4. Plots
 
@@ -326,6 +364,13 @@ print(sw.p, vp=viewport(layout.pos.col = 1, layout.pos.row = 2, height = 5))
 print(stat.p, vp=viewport(layout.pos.col = 2, layout.pos.row = 1, height = 5))
 print(pt.p, vp=viewport(layout.pos.col = 2, layout.pos.row = 2, height = 5))
 dev.off()
+
+f2.df = data.frame(dasy = append(summary(dasy_res$HSE_UNITS), sum(dasy_res$HSE_UNITS)),
+				stat = append(summary(stat_res$houses), sum(stat_res$houses)),
+				sw = append(summary(sw_res$Houses),sum(sw_res$Houses)),
+				pt = append(summary(pt_res$Houses), sum(pt_res$Houses)))
+rownames(f2.df)[7] = "Total"
+write.csv(round(f2.df,0),"tab3.csv")
 
 # Figure 3 (input data)
 # plot study area detail
@@ -340,8 +385,9 @@ MyMap <- openmap(ul,lr,13,'osm')
 
 png(filename = "F3a.png", w = 15/3, h = 15/3, units = "in", res = 300)
 par(mar = c(1,1,1,1))
-plot(MyMap, removeMargin=FALSE) 
+plot(MyMap, removeMargin=F) 
 plot(spTransform(as(tz_m, "Spatial"), osm()), add = TRUE, col = rgb(0.75,0.25,0.25,0.15))
+#scalebar(3000, label = c(0, 1.5, 3), type = "bar", below = "km", xy = c(-8119700,5047700))
 title("Binary Mask (Pycno)", font.main = 1)
 dev.off()
 
@@ -349,6 +395,7 @@ png(filename = "F3b.png", w = 15/3, h = 15/3, units = "in", res = 300)
 par(mar = c(1,1,1,1))
 plot(MyMap, removeMargin=FALSE) 
 plot(spTransform(as(streets, "Spatial"), osm()), add = TRUE)
+#scalebar(3000, label = c(0, 1.5, 3), type = "bar", below = "km", xy = c(-8119700,5047700))
 title("OSM road network (Streets)", font.main = 1)
 dev.off()
 
@@ -365,6 +412,7 @@ png(filename = "F3c.png", w = 15/3, h = 15/3, units = "in", res = 300)
 par(mar = c(1,1,1,1))
 plot(MyMap, removeMargin=FALSE) 
 plot(spTransform(lc_tmp, osm()), add = TRUE, cex = 0.2, pch = 15, col = col.vec)
+#scalebar(3000, label = c(0, 1.5, 3), type = "bar", below = "km", xy = c(-8119700,5047700))
 title("Land cover (Statistical)", font.main = 1)
 dev.off()
 
@@ -372,10 +420,11 @@ png(filename = "F3d.png", w = 15/3, h = 15/3, units = "in", res = 300)
 par(mar = c(1,1,1,1))
 plot(MyMap, removeMargin=FALSE) 
 plot(spTransform(as(buildings, "Spatial"), osm()), add = TRUE, cex = 0.1, pch = 15)
+#scalebar(3000, label = c(0, 1.5, 3), type = "bar", below = "km", xy = c(-8119700,5047700))
 title("OSM Buildings (Point)", font.main = 1)
 dev.off()
 
-save.image(file = "part_all_pycno_polys.rda")
+# save.image(file = "upto5.RData")
 
 #### 5.Housing sales / rental website data
 # load in the USGS land cover  data
@@ -428,10 +477,12 @@ web.p <- tm_shape(web_res) + tm_polygons(col='Houses',palette = "YlGnBu",
             breaks = breaks, title = "Houses Web")+
  	tm_layout(frame = F, legend.show = T) +
  	#tm_shape(buildings) +tm_dots("darkgray", alpha = 0.5, size = 0.002)+
-	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)
+	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
+	tm_scale_bar(position = c(0.3))+
+	tm_compass(position = c(0.382, 0.1))
 
 # Figure 4b
-png(filename = "F4_b.png", w = 15/3, h = 15/3, units = "in", res = 300)
+png(filename = "F4b.png", w = 15/3, h = 15/3, units = "in", res = 300)
 pushViewport(viewport(layout=grid.layout(1,1)))
 # plot using he print command
 print(web.p, vp=viewport(layout.pos.col = 1, layout.pos.row = 1, height = 5))
@@ -447,15 +498,15 @@ wf <- data.frame(	Area = aw_res$HSE_UNITS,
 					Stat = stat_res$houses,
 					PtB = pt_res$Houses,
 					Web = web_res$Houses)
-cor.mat <- cov(wf) 
 
-# Figure 5
-png(filename = "F5.png", w = 15/2, h = 15/2, units = "in", res = 300)
-cpairs(wf,order.single(cor.mat),dmat.color(cor.mat), cex = 0.5)
+png(filename = "F5.png", w = 15/3, h = 15/3, units = "in", res = 300)
+ggpairs(wf, aes(alpha = 0.4),
+          upper = list(continuous = wrap('cor', size = 3, colour = "black")),
+		lower = list(continuous = wrap('smooth',alpha = 0.3, cex=0.2   ))) +
+  theme(axis.line=element_blank(),
+        axis.text=element_blank(),
+        axis.ticks=element_blank())
 dev.off()
-
-round(cor(wf), 2) 
-write.csv(round(cor(wf), 2), file = "tab1.csv")
 
 #save.image(file = "all_data.rda")
 
