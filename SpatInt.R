@@ -140,26 +140,26 @@ data.p <- tm_shape(tz_sf) + tm_borders()+
               tm_shape(tz_sf) + tm_borders() +
               tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
               tm_scale_bar(position = c(0.3))+
-              tm_compass(position = c(0.382, 0.1))
+              tm_compass(position = c(0.378, 0.1))
 atp.p <- tm_shape(a2p_res) + 
 	tm_polygons(col='houses',palette = "YlGnBu", 
             breaks = breaks, title = "Houses AtP")+
  			tm_layout(frame = F, legend.show = T) +
 			tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
 			tm_scale_bar(position = c(0.3))+
-			tm_compass(position = c(.382, 0.1))
+              tm_compass(position = c(0.378, 0.1))
 py.p <- tm_shape(py_res) + tm_polygons("dens", palette = "YlGnBu", 
             breaks = breaks, title = "Houses Pycno")+
               tm_layout(frame = F, legend.show = T) +
               tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
               tm_scale_bar(position = c(0.3))+
-              tm_compass(position = c(0.382, 0.1))
+              tm_compass(position = c(0.378, 0.1))
 aw.p <- tm_shape(aw_res) + tm_polygons("HSE_UNITS", palette = "YlGnBu", 
             breaks = breaks, title = "Houses AW")+
               tm_layout(frame = F, legend.show = T) +
               tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
               tm_scale_bar(position = c(0.3))+
-              tm_compass(position = c(0.382, 0.1))
+              tm_compass(position = c(0.378, 0.1))
 
 # write PNG of maps 
 # you may want to set your working directory with setwd()
@@ -216,7 +216,7 @@ dasy.p<-
  			tm_layout(frame = F, legend.show = T) +
 			tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
             tm_scale_bar(position = c(0.3))+
-            tm_compass(position = c(0.382, 0.1))
+            tm_compass(position = c(0.378, 0.1))
 
 #### 3.2 Street weighted
 # load in the OSM street data
@@ -260,7 +260,7 @@ sw.p<- tm_shape(sw_res) + tm_polygons(col='Houses',palette = "YlGnBu",
  	#tm_shape(streets) +tm_lines("darkgray")+
 	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
 	tm_scale_bar(position = c(0.3))+
-	tm_compass(position = c(0.382, 0.1))
+	tm_compass(position = c(0.378, 0.1))
 # save.image("upto3.3.RData")
 
 #### 3.3 Statistical
@@ -299,7 +299,7 @@ stat.p<- tm_shape(stat_res) + tm_polygons(col='houses',palette = "YlGnBu",
  	tm_layout(frame = F, legend.show = T) +
 	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
 	tm_scale_bar(position = c(0.3))+
-	tm_compass(position = c(0.382, 0.1))
+	tm_compass(position = c(0.378, 0.1))
 
 #### 3.4 Point-Based ancillary information
 # load in the OSM building  data
@@ -352,7 +352,7 @@ pt.p <- tm_shape(pt_res) + tm_polygons(col='Houses',palette = "YlGnBu",
  	#tm_shape(buildings) +tm_dots("darkgray", alpha = 0.5, size = 0.002)+
 	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
 	tm_scale_bar(position = c(0.3))+
-	tm_compass(position = c(0.382, 0.1))
+	tm_compass(position = c(0.378, 0.1))
 
 #### 4. Plots
 
@@ -479,7 +479,7 @@ web.p <- tm_shape(web_res) + tm_polygons(col='Houses',palette = "YlGnBu",
  	#tm_shape(buildings) +tm_dots("darkgray", alpha = 0.5, size = 0.002)+
 	tm_shape(sz_sf) + tm_borders(col = "black", lwd = 2)+
 	tm_scale_bar(position = c(0.3))+
-	tm_compass(position = c(0.382, 0.1))
+	tm_compass(position = c(0.378, 0.1))
 
 # Figure 4b
 png(filename = "F4b.png", w = 15/3, h = 15/3, units = "in", res = 300)
@@ -488,27 +488,95 @@ pushViewport(viewport(layout=grid.layout(1,1)))
 print(web.p, vp=viewport(layout.pos.col = 1, layout.pos.row = 1, height = 5))
 #print(wwt.p, vp=viewport(layout.pos.col = 2, layout.pos.row = 1, height = 5))
 dev.off()
+vals = matrix(c(round(summary(web_res$Houses), 0), sum(web_res$Houses)))
+tab = c(names(summary(web_res$Houses)), "Total")
+tab = cbind(tab, vals)
+write.csv(tab, file = "tab4.csv")
 
-#### 6.Comparisons
-wf <- data.frame(	Area = aw_res$HSE_UNITS,
+#### 6.Comparisons in Figure 5
+wf <- data.frame(	AW = aw_res$HSE_UNITS,
 					Pycno = py_res$dens,
 					AtP = a2p_res$houses,
 					Dasy = dasy_res$HSE_UNITS,
-					StWt = sw_res$Houses, 
+					Street = sw_res$Houses, 
 					Stat = stat_res$houses,
-					PtB = pt_res$Houses,
+					Point = pt_res$Houses,
 					Web = web_res$Houses)
 
+# original panel plot
+# ggpairs(wf, aes(alpha = 0.4),
+#          upper = list(continuous = wrap('cor', size = 6, colour = "black")),
+#          lower = list(continuous = wrap('smooth',alpha = 0.3, cex=0.2   ))) +
+#          theme(axis.line=element_blank(),
+#          	axis.text=element_blank(),
+#          	axis.ticks=element_blank())
+
+# functions change the layout modified from https://github.com/ggobi/ggally/issues/139
+# for lower panel of plots
+my_custom_smooth <- function(data, mapping, ...) {
+  ggplot(data = data, mapping = mapping) +
+    geom_point(color = I("blue"), alpha = 0.3, cex = 0.5) + 
+    geom_smooth(method = "lm", lwd = 0.5, color = I("red3"), ...)
+}
+#my_custom_smooth(iris, aes(Sepal.Length, Sepal.Width))
+
+# for upper panel plot
+my_custom_cor <- function(data, mapping, color = I("black"), sizeRange = c(1.5, 3), ...) {
+  # get the x and y data to use the other code
+  x <- eval_data_col(data, mapping$x)
+  y <- eval_data_col(data, mapping$y)
+  ct <- cor.test(x,y)
+  sig <- symnum(
+    ct$p.value, corr = FALSE, na = FALSE,
+    cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+    symbols = c("***", "**", "*", ".", " "))
+  r <- unname(ct$estimate)
+  rt <- format(r, digits=2)[1]
+  # since we can't print it to get the strsize, just use the max size range
+  cex <- max(sizeRange)
+  # helper function to calculate a useable size
+  percent_of_range <- function(percent, range) {
+    percent * diff(range) + min(range, na.rm = TRUE)}
+  # plot the cor value
+  ggally_text(
+    label = as.character(rt), 
+    mapping = aes(),
+    xP = 0.5, yP = 0.5, 
+    size = I(percent_of_range(cex * abs(r), sizeRange)),
+    color = color,
+    ...) + 
+    # add the sig stars
+    geom_text(
+      aes_string(
+        x = 0.8,
+        y = 0.8),
+      label = sig, 
+      size = I(cex),
+      color = color,
+      ...) + 
+    # remove all the background stuff and wrap it with a dashed line
+    theme_classic() + 
+    theme(
+      panel.background = element_rect(
+        color = "grey50", 
+        linetype = "longdash"), 
+      axis.line = element_blank(), 
+      axis.ticks = element_blank(), 
+      axis.text.y = element_blank(), 
+      axis.text.x = element_blank())
+}
+# my_custom_cor(iris, aes(Sepal.Length, Sepal.Width))
+
+# now apply to data
 png(filename = "F5.png", w = 15/3, h = 15/3, units = "in", res = 300)
 ggpairs(wf, aes(alpha = 0.4),
-          upper = list(continuous = wrap('cor', size = 3, colour = "black")),
-		lower = list(continuous = wrap('smooth',alpha = 0.3, cex=0.2   ))) +
-  theme(axis.line=element_blank(),
-        axis.text=element_blank(),
-        axis.ticks=element_blank())
+          upper = list(continuous = my_custom_cor),
+          lower = list(continuous = my_custom_smooth)) + 
+          theme(axis.line=element_blank(), 
+          	axis.text=element_blank(), axis.ticks=element_blank())
 dev.off()
 
-#save.image(file = "all_data.rda")
+#save.image(file = "all_data.RData")
 
 ##### END
 
