@@ -1,5 +1,5 @@
 # Spatial interpolation using areal features: a review of methods and opportunities using new forms of data with coded illustrations
-Coded examples in R of the different approaches described in the paper
+Coded examples in R of the different approaches described in the paper.
 
 Alexis Comber<sup>1</sup>, Wen Zeng<sup>1</sup>,<sup>2</sup>
 
