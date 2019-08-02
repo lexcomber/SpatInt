@@ -12,3 +12,6 @@ This paper provides a high level review of different approaches for spatial inte
 
 ## Code 
 The code and data used to illustrate a submission to Geography Compass. You can download the `SpatInt.R` file (`.Rmd` file to come...perhaps!) and run this in R or RStudio. It loads the `.RData` files and provides links to the `.R` files which describe how the data were created and assembled. You may need to install some of the packages but the code checks and does this. The script will load up the data (and different forms of ancillary data) and illustrate each of spatial interpolation approaches described in the text. Please contact me if you have queries! Lex (a.comber@leeds.ac.uk)
+
+## Acknowledgements
+This work was supported by the Natural Science Foundation of Shandong Province (ZR201702170310, the State Scholarship Fund of China Scholarship Council (201808370092) and the Natural Environment Research Council (NE/S009124/1). All of the analyses and mapping were undertaken in R 3.5.3 the open source statistical software.
