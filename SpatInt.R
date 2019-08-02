@@ -1,6 +1,9 @@
 ##### Code Development Script 	##### 
-##### Lex Comber		##### 
-##### January 2019		##### 
+##### Lex Comber				##### 
+##### a.comber@leeds.ac.uk		#####
+##### July 2019					##### 
+##### Full CODE and DATA CREATION Details are at 	#####
+##### https://github.com/lexcomber/SpatInt 			#####
 
 #### -1. Check and load packages
 if (!is.element("pycno", installed.packages())) 
@@ -52,12 +55,13 @@ library(GGally)
 
 #### 1. Load Data
 # load source zones and target zones
-# see DataIn.R for the creation of this data
+# see GitHub site for details of the creation of this data
+# https://github.com/lexcomber/SpatInt 
 source_data("https://github.com/lexcomber/SpatInt/blob/master/DataIn.RData?raw=True")
-# or if saved locally
+# or if saved locally then set your working director then load
 # load("DataIn.RData")
 
-#### 2. No Ancillary Data ####
+#### 2. Approaches with No Ancillary Data ####
 
 #### 2.1 Areal Weighting
 aw_res <- st_interpolate_aw(sz_sf, tz_sf, extensive = T)
