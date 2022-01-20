@@ -19,7 +19,8 @@ You can download the `SpatInt_Jan22.R` file (`.Rmd` file to come...perhaps!) and
 This work was supported by the Natural Science Foundation of Shandong Province (ZR201702170310, the State Scholarship Fund of China Scholarship Council (201808370092) and the Natural Environment Research Council (NE/S009124/1). All of the analyses and mapping were undertaken in R 4.0.4 the open source statistical software.
 
 ## Package and Session Info
-`R version 4.0.4 (2021-02-15)
+```{r}
+R version 4.0.4 (2021-02-15)
 Platform: x86_64-apple-darwin17.0 (64-bit)
 Running under: macOS Big Sur 10.16
 
@@ -55,4 +56,4 @@ loaded via a namespace (and not attached):
 [61] png_0.1-7          vctrs_0.3.7        gtable_0.3.0       purrr_0.3.4        reshape_0.8.8     
 [66] assertthat_0.2.1   lwgeom_0.2-6       e1071_1.7-9        class_7.3-18       viridisLite_0.4.0 
 [71] tibble_3.1.1       intervals_0.15.2   rJava_1.0-5        units_0.7-1        ellipsis_0.3.1   ` 
-
+```
